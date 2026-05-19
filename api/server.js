@@ -3,8 +3,17 @@ const cors = require('cors');
 require('dotenv').config();
 const path = require('path');
 
+// Import Supabase directly for testing
+const { createClient } = require('@supabase/supabase-js');
+
 const slotGame = require('./game-logic');
 const db = require('./database');
+
+// Create Supabase client for direct testing
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+);
 
 const app = express();
 
@@ -65,6 +74,8 @@ app.get('/api/info', (req, res) => {
 
 // Debug endpoint to check Supabase connection
 app.get('/api/debug', async (req, res) => {
+    console.log('🔍 Debug endpoint called');
+    
     try {
         const company = await db.getCompany('test_api_key_123');
         res.json({
@@ -75,11 +86,49 @@ app.get('/api/debug', async (req, res) => {
             message: 'Debug info'
         });
     } catch (error) {
+        console.log('❌ Debug error:', error.message);
         res.json({
             error: error.message,
             supabase_url: process.env.SUPABASE_URL ? 'set' : 'missing',
             supabase_key: process.env.SUPABASE_ANON_KEY ? 'set' : 'missing',
             company_found: false
+        });
+    }
+});
+
+// Test database connection directly
+app.get('/api/test-db', async (req, res) => {
+    console.log('🧪 Testing database connection directly...');
+    console.log('SUPABASE_URL:', process.env.SUPABASE_URL);
+    console.log('SUPABASE_ANON_KEY exists:', process.env.SUPABASE_ANON_KEY ? 'YES' : 'NO');
+    
+    try {
+        // Try to get a company directly
+        const { data, error } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('api_key', 'test_api_key_123');
+        
+        if (error) {
+            console.log('❌ Database error:', error);
+            return res.json({ 
+                success: false, 
+                error: error.message,
+                details: error
+            });
+        }
+        
+        console.log('✅ Database data:', data);
+        res.json({ 
+            success: true, 
+            data: data,
+            count: data.length
+        });
+    } catch (error) {
+        console.log('⚠️ Exception:', error.message);
+        res.json({ 
+            success: false, 
+            error: error.message 
         });
     }
 });
