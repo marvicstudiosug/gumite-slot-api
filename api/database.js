@@ -2,6 +2,10 @@
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
+console.log('⚠️ DATABASE.JS LOADING...');
+console.log('SUPABASE_URL exists:', process.env.SUPABASE_URL ? 'YES' : 'NO');
+console.log('SUPABASE_ANON_KEY exists:', process.env.SUPABASE_ANON_KEY ? 'YES' : 'NO');
+
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_ANON_KEY
@@ -11,6 +15,7 @@ class Database {
     // Company management
     async getCompany(apiKey) {
         console.log('🔍 Looking for API key:', apiKey);
+        console.log('SUPABASE_URL being used:', process.env.SUPABASE_URL);
         
         try {
             const { data, error } = await supabase
@@ -21,7 +26,7 @@ class Database {
             
             if (error) {
                 console.log('❌ Supabase error:', error.message);
-                console.log('Error details:', error);
+                console.log('Error details:', JSON.stringify(error, null, 2));
                 return null;
             }
             
@@ -108,5 +113,7 @@ class Database {
         return data;
     }
 }
+
+console.log('✅ DATABASE.JS LOADED SUCCESSFULLY');
 
 module.exports = new Database();
