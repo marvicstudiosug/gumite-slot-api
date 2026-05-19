@@ -20,14 +20,19 @@ app.use(express.json());
 app.use('/demo', express.static(path.join(__dirname, '../demo')));
 
 async function authenticate(req, res, next) {
+    console.log('🔐 Authenticating...');
     const apiKey = req.headers['x-api-key'] || req.body.apiKey;
     if (!apiKey) {
+        console.log('❌ No API key provided');
         return res.status(401).json({ error: 'API key required' });
     }
+    console.log('🔑 API key:', apiKey);
     const company = await db.getCompany(apiKey);
     if (!company) {
+        console.log('❌ Invalid API key:', apiKey);
         return res.status(401).json({ error: 'Invalid API key' });
     }
+    console.log('✅ Company found:', company.name);
     req.company = company;
     next();
 }
@@ -84,18 +89,44 @@ app.get('/api/direct-query', async (req, res) => {
 });
 
 app.post('/api/spin', authenticate, async (req, res) => {
+    console.log('🎰 Spin endpoint called');
     try {
         const { playerId, betAmount } = req.body;
-        if (!playerId) return res.status(400).json({ error: 'Player ID required' });
-        if (!betAmount || betAmount < 10) return res.status(400).json({ error: 'Minimum bet is 10 UGX' });
-        if (betAmount > 10000) return res.status(400).json({ error: 'Maximum bet is 10,000 UGX' });
+        console.log('📝 Player ID:', playerId);
+        console.log('💰 Bet amount:', betAmount);
+        
+        if (!playerId) {
+            console.log('❌ Missing player ID');
+            return res.status(400).json({ error: 'Player ID required' });
+        }
+        if (!betAmount || betAmount < 10) {
+            console.log('❌ Invalid bet amount:', betAmount);
+            return res.status(400).json({ error: 'Minimum bet is 10 UGX' });
+        }
+        if (betAmount > 10000) {
+            console.log('❌ Bet too high:', betAmount);
+            return res.status(400).json({ error: 'Maximum bet is 10,000 UGX' });
+        }
         if (req.company.balance < betAmount) {
+            console.log('❌ Insufficient balance. Company balance:', req.company.balance);
             return res.status(402).json({ error: 'Insufficient balance' });
         }
+
+        console.log('🎲 Generating spin result...');
         const result = slotGame.spin(betAmount);
+        console.log('✅ Spin result generated. Win:', result.win);
+
         const newBalance = req.company.balance - betAmount + result.win;
+        console.log('📊 New balance:', newBalance);
+
+        console.log('💾 Updating company balance in Supabase...');
         await db.updateCompanyBalance(req.company.id, newBalance);
+        console.log('✅ Balance updated');
+
+        console.log('📝 Logging spin to Supabase...');
         await db.logSpin(req.company.id, playerId, betAmount, result.win, result.grid.join(','));
+        console.log('✅ Spin logged');
+
         res.json({
             success: true,
             spinId: result.spinId,
@@ -104,9 +135,11 @@ app.post('/api/spin', authenticate, async (req, res) => {
             balance: { company: newBalance, player: null },
             timestamp: result.timestamp
         });
+
     } catch (error) {
-        console.error('Spin error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.log('❌❌❌ CRASH in /api/spin:');
+        console.log(error);
+        res.status(500).json({ error: 'Internal server error: ' + error.message });
     }
 });
 
