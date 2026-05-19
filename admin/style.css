@@ -1,0 +1,99 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #0a0612;
+    color: #fff;
+    padding: 2rem;
+}
+.dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 1rem;
+}
+.header h1 {
+    font-size: 2rem;
+    background: linear-gradient(135deg, #ffdd44, #ff8800);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    background: rgba(255,255,255,0.05);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.stat-card .label {
+    color: #888;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+.stat-card .value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+.stat-card .value.green { color: #4caf50; }
+.stat-card .value.red { color: #f44336; }
+.stat-card .value.gold { color: #ffdd44; }
+.table-container {
+    background: rgba(255,255,255,0.05);
+    border-radius: 1rem;
+    padding: 1rem;
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+th {
+    color: #888;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+.status-badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 1rem;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+.status-badge.active { background: #4caf50; color: #fff; }
+.status-badge.inactive { background: #f44336; color: #fff; }
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+.btn-primary {
+    background: #ffdd44;
+    color: #1a1205;
+}
+.btn-primary:hover { transform: scale(1.05); }
+.btn-danger {
+    background: #f44336;
+    color: #fff;
+}
+@media (max-width: 600px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+}

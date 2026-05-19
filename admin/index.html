@@ -1,1 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GUMITE Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🎰 GUMITE Admin</h1>
+            <div>
+                <button class="btn btn-primary" onclick="addCompany()">+ Add Company</button>
+            </div>
+        </div>
 
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="label">Total Companies</div>
+                <div class="value" id="totalCompanies">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Spins</div>
+                <div class="value" id="totalSpins">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Revenue</div>
+                <div class="value gold" id="totalRevenue">0 UGX</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">House Edge</div>
+                <div class="value green" id="houseEdge">6.5%</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>API Key</th>
+                        <th>Balance</th>
+                        <th>Spins</th>
+                        <th>Revenue</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="companiesTable">
+                    <tr>
+                        <td colspan="7" style="text-align:center;color:#888;">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://gumite-slot-api.onrender.com/api';
+        
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_URL}/admin/companies`);
+                const data = await response.json();
+                
+                const companies = data.companies || [];
+                document.getElementById('totalCompanies').textContent = companies.length;
+                
+                const totalSpins = companies.reduce((sum, c) => sum + (c.spins || 0), 0);
+                const totalRevenue = companies.reduce((sum, c) => sum + (c.revenue || 0), 0);
+                
+                document.getElementById('totalSpins').textContent = totalSpins;
+                document.getElementById('totalRevenue').textContent = totalRevenue.toLocaleString() + ' UGX';
+                document.getElementById('houseEdge').textContent = '6.5%';
+                
+                const tableBody = document.getElementById('companiesTable');
+                tableBody.innerHTML = companies.map(company => `
+                    <tr>
+                        <td><strong>${company.name}</strong></td>
+                        <td><code>${company.api_key.substring(0,8)}...</code></td>
+                        <td>${company.balance.toLocaleString()} UGX</td>
+                        <td>${company.spins || 0}</td>
+                        <td>${company.revenue ? company.revenue.toLocaleString() : 0} UGX</td>
+                        <td><span class="status-badge ${company.status}">${company.status}</span></td>
+                        <td>
+                            <button class="btn btn-primary" onclick="viewCompany('${company.id}')">View</button>
+                            <button class="btn btn-danger" onclick="toggleCompany('${company.id}')">Toggle</button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                document.getElementById('companiesTable').innerHTML = 
+                    '<tr><td colspan="7" style="text-align:center;color:#f44336;">Error loading data. Make sure API is running.</td></tr>';
+            }
+        }
+
+        function addCompany() {
+            const name = prompt('Enter company name:');
+            if (!name) return;
+            const email = prompt('Enter company email:');
+            if (!email) return;
+            alert('In production, this would add a company to the database.');
+        }
+
+        function viewCompany(id) {
+            alert('View company: ' + id);
+        }
+
+        function toggleCompany(id) {
+            alert('Toggle company: ' + id);
+        }
+
+        loadDashboard();
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>
