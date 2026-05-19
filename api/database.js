@@ -10,13 +10,18 @@ const supabase = createClient(
 class Database {
     // Company management
     async getCompany(apiKey) {
+        console.log('Looking for API key:', apiKey);
         const { data, error } = await supabase
             .from('companies')
             .select('*')
             .eq('api_key', apiKey)
             .single();
         
-        if (error) return null;
+        if (error) {
+            console.log('Supabase error:', error);
+            return null;
+        }
+        console.log('Found company:', data);
         return data;
     }
 
@@ -31,7 +36,6 @@ class Database {
         return data;
     }
 
-    // Spin logging
     async logSpin(companyId, playerId, betAmount, winAmount, grid) {
         const { data, error } = await supabase
             .from('spins')
@@ -48,7 +52,6 @@ class Database {
         return data;
     }
 
-    // Transaction logging
     async logTransaction(companyId, type, amount, reference) {
         const { data, error } = await supabase
             .from('transactions')
@@ -64,7 +67,6 @@ class Database {
         return data;
     }
 
-    // Get company statistics
     async getCompanyStats(companyId) {
         const { data: spins, error: spinsError } = await supabase
             .from('spins')
@@ -88,7 +90,6 @@ class Database {
         };
     }
 
-    // Get all companies for admin
     async getAllCompanies() {
         const { data, error } = await supabase
             .from('companies')
