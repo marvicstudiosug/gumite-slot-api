@@ -10,19 +10,27 @@ const supabase = createClient(
 class Database {
     // Company management
     async getCompany(apiKey) {
-        console.log('Looking for API key:', apiKey);
-        const { data, error } = await supabase
-            .from('companies')
-            .select('*')
-            .eq('api_key', apiKey)
-            .single();
+        console.log('🔍 Looking for API key:', apiKey);
         
-        if (error) {
-            console.log('Supabase error:', error);
+        try {
+            const { data, error } = await supabase
+                .from('companies')
+                .select('*')
+                .eq('api_key', apiKey)
+                .single();
+            
+            if (error) {
+                console.log('❌ Supabase error:', error.message);
+                console.log('Error details:', error);
+                return null;
+            }
+            
+            console.log('✅ Found company:', data);
+            return data;
+        } catch (error) {
+            console.log('⚠️ Exception caught:', error.message);
             return null;
         }
-        console.log('Found company:', data);
-        return data;
     }
 
     async updateCompanyBalance(companyId, newBalance) {
