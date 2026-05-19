@@ -96,33 +96,35 @@ app.get('/api/debug', async (req, res) => {
     }
 });
 
-// Test database connection directly
-app.get('/api/test-db', async (req, res) => {
-    console.log('🧪 Testing database connection directly...');
+// Direct query test - bypasses database.js
+app.get('/api/direct-query', async (req, res) => {
+    console.log('🔍 Direct query test');
     console.log('SUPABASE_URL:', process.env.SUPABASE_URL);
-    console.log('SUPABASE_ANON_KEY exists:', process.env.SUPABASE_ANON_KEY ? 'YES' : 'NO');
+    console.log('Looking for API key: test_api_key_123');
     
     try {
-        // Try to get a company directly
+        // Query companies table directly
         const { data, error } = await supabase
             .from('companies')
             .select('*')
             .eq('api_key', 'test_api_key_123');
         
         if (error) {
-            console.log('❌ Database error:', error);
+            console.log('❌ Error:', error);
             return res.json({ 
                 success: false, 
                 error: error.message,
-                details: error
+                details: error 
             });
         }
         
-        console.log('✅ Database data:', data);
+        console.log('✅ Data found:', data);
+        
         res.json({ 
             success: true, 
             data: data,
-            count: data.length
+            count: data.length,
+            found: data.length > 0
         });
     } catch (error) {
         console.log('⚠️ Exception:', error.message);
@@ -380,4 +382,5 @@ app.listen(PORT, () => {
     console.log(`🚀 GUMITE Slot API running on port ${PORT}`);
     console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
     console.log(`💰 House edge: ${slotGame.getHouseEdge() * 100}%`);
+});}%`);
 });

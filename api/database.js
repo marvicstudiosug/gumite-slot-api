@@ -21,8 +21,7 @@ class Database {
             const { data, error } = await supabase
                 .from('companies')
                 .select('*')
-                .eq('api_key', apiKey)
-                .single();
+                .eq('api_key', apiKey);
             
             if (error) {
                 console.log('❌ Supabase error:', error.message);
@@ -30,8 +29,10 @@ class Database {
                 return null;
             }
             
-            console.log('✅ Found company:', data);
-            return data;
+            console.log('✅ Data found:', data);
+            
+            // Return the first result or null
+            return data && data.length > 0 ? data[0] : null;
         } catch (error) {
             console.log('⚠️ Exception caught:', error.message);
             return null;
