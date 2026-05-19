@@ -138,6 +138,7 @@
     </div>
     <script>
         const API_URL = 'https://gumite-slot-api.onrender.com/api';
+        const API_KEY = 'test_api_key_123';
         let balance = 10000;
         let spinning = false;
         const gridEl = document.getElementById('slotGrid');
@@ -178,7 +179,10 @@
             try {
                 const response = await fetch(`${API_URL}/spin`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-api-key': API_KEY
+                    },
                     body: JSON.stringify({
                         playerId: 'demo_player_1',
                         betAmount: betAmount
