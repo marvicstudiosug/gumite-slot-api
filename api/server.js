@@ -3,13 +3,11 @@ const cors = require('cors');
 require('dotenv').config();
 const path = require('path');
 
-// Import Supabase directly for testing
 const { createClient } = require('@supabase/supabase-js');
 
 const slotGame = require('./game-logic');
 const db = require('./database');
 
-// Create Supabase client for direct testing
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_ANON_KEY
@@ -17,47 +15,27 @@ const supabase = createClient(
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
-
-// Serve static files from the demo folder
 app.use('/demo', express.static(path.join(__dirname, '../demo')));
 
-// Authentication middleware
 async function authenticate(req, res, next) {
     const apiKey = req.headers['x-api-key'] || req.body.apiKey;
     if (!apiKey) {
-        return res.status(401).json({ 
-            error: 'API key required',
-            code: 'MISSING_API_KEY'
-        });
+        return res.status(401).json({ error: 'API key required' });
     }
-
     const company = await db.getCompany(apiKey);
     if (!company) {
-        return res.status(401).json({ 
-            error: 'Invalid API key',
-            code: 'INVALID_API_KEY'
-        });
+        return res.status(401).json({ error: 'Invalid API key' });
     }
-
     req.company = company;
     next();
 }
 
-// ============ PUBLIC ENDPOINTS ============
-
-// Health check
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'online',
-        version: '1.0.0',
-        timestamp: Date.now()
-    });
+    res.json({ status: 'online', version: '1.0.0', timestamp: Date.now() });
 });
 
-// Game info
 app.get('/api/info', (req, res) => {
     res.json({
         name: 'GUMITE Slot',
@@ -71,7 +49,6 @@ app.get('/api/info', (req, res) => {
     });
 });
 
-// Debug endpoint
 app.get('/api/debug', async (req, res) => {
     try {
         const company = await db.getCompany('test_api_key_123');
@@ -79,35 +56,22 @@ app.get('/api/debug', async (req, res) => {
             supabase_url: process.env.SUPABASE_URL ? 'set' : 'missing',
             supabase_key: process.env.SUPABASE_ANON_KEY ? 'set' : 'missing',
             company_found: company ? true : false,
-            company_data: company,
-            message: 'Debug info'
+            company_data: company
         });
     } catch (error) {
-        res.json({
-            error: error.message,
-            supabase_url: process.env.SUPABASE_URL ? 'set' : 'missing',
-            supabase_key: process.env.SUPABASE_ANON_KEY ? 'set' : 'missing',
-            company_found: false
-        });
+        res.json({ error: error.message });
     }
 });
 
-// Direct query test
 app.get('/api/direct-query', async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('companies')
             .select('*')
             .eq('api_key', 'test_api_key_123');
-        
         if (error) {
-            return res.json({ 
-                success: false, 
-                error: error.message,
-                details: error 
-            });
+            return res.json({ success: false, error: error.message });
         }
-        
         res.json({ 
             success: true, 
             data: data,
@@ -115,16 +79,10 @@ app.get('/api/direct-query', async (req, res) => {
             found: data.length > 0
         });
     } catch (error) {
-        res.json({ 
-            success: false, 
-            error: error.message 
-        });
+        res.json({ success: false, error: error.message });
     }
 });
 
-// ============ PROTECTED ENDPOINTS ============
-
-// Spin endpoint
 app.post('/api/spin', authenticate, async (req, res) => {
     try {
         const { playerId, betAmount } = req.body;
@@ -134,26 +92,16 @@ app.post('/api/spin', authenticate, async (req, res) => {
         if (req.company.balance < betAmount) {
             return res.status(402).json({ error: 'Insufficient balance' });
         }
-
         const result = slotGame.spin(betAmount);
         const newBalance = req.company.balance - betAmount + result.win;
         await db.updateCompanyBalance(req.company.id, newBalance);
         await db.logSpin(req.company.id, playerId, betAmount, result.win, result.grid.join(','));
-
         res.json({
             success: true,
             spinId: result.spinId,
             grid: result.grid,
             win: result.win,
-            winningLines: result.winningLines.map(line => ({
-                positions: line.positions,
-                multiplier: line.multiplier,
-                win: line.win
-            })),
-            balance: {
-                company: newBalance,
-                player: null
-            },
+            balance: { company: newBalance, player: null },
             timestamp: result.timestamp
         });
     } catch (error) {
@@ -162,7 +110,6 @@ app.post('/api/spin', authenticate, async (req, res) => {
     }
 });
 
-// Deposit endpoint
 app.post('/api/deposit', authenticate, async (req, res) => {
     try {
         const { amount } = req.body;
@@ -179,7 +126,6 @@ app.post('/api/deposit', authenticate, async (req, res) => {
     }
 });
 
-// Withdrawal endpoint
 app.post('/api/withdraw', authenticate, async (req, res) => {
     try {
         const { amount, bankAccount } = req.body;
@@ -202,7 +148,6 @@ app.post('/api/withdraw', authenticate, async (req, res) => {
     }
 });
 
-// Balance check
 app.get('/api/balance', authenticate, async (req, res) => {
     res.json({
         companyId: req.company.id,
@@ -213,7 +158,6 @@ app.get('/api/balance', authenticate, async (req, res) => {
     });
 });
 
-// Statistics
 app.get('/api/stats', authenticate, async (req, res) => {
     try {
         const stats = await db.getCompanyStats(req.company.id);
@@ -229,130 +173,28 @@ app.get('/api/stats', authenticate, async (req, res) => {
     }
 });
 
-// Admin endpoint
 app.get('/api/admin/companies', async (req, res) => {
     try {
         const companies = await db.getAllCompanies();
-        res.json({
-            success: true,
-            companies: companies
-        });
+        res.json({ success: true, companies: companies });
     } catch (error) {
         console.error('Admin error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-// ============ ERROR HANDLING ============
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);
     res.status(500).json({ error: 'Internal server error' });
 });
 
-// 404 handler
 app.use((req, res) => {
     res.status(404).json({ error: 'Endpoint not found' });
 });
 
-// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 GUMITE Slot API running on port ${PORT}`);
     console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
     console.log(`💰 House edge: ${slotGame.getHouseEdge() * 100}%`);
-});ame} withdrew ${amount} UGX to ${bankAccount}`);
-
-        res.json({
-            success: true,
-            transactionId: 'WITHDRAW_' + Date.now(),
-            amount: amount,
-            newBalance: newBalance,
-            bankAccount: bankAccount,
-            timestamp: Date.now()
-        });
-
-    } catch (error) {
-        console.error('Withdrawal error:', error);
-        res.status(500).json({ 
-            error: 'Internal server error',
-            code: 'SERVER_ERROR'
-        });
-    }
-});
-
-// Balance check
-app.get('/api/balance', authenticate, async (req, res) => {
-    res.json({
-        companyId: req.company.id,
-        companyName: req.company.name,
-        balance: req.company.balance,
-        currency: 'UGX',
-        timestamp: Date.now()
-    });
-});
-
-// Statistics
-app.get('/api/stats', authenticate, async (req, res) => {
-    try {
-        const stats = await db.getCompanyStats(req.company.id);
-        
-        res.json({
-            companyId: req.company.id,
-            companyName: req.company.name,
-            ...stats,
-            currency: 'UGX',
-            period: 'all_time',
-            timestamp: Date.now()
-        });
-
-    } catch (error) {
-        console.error('Stats error:', error);
-        res.status(500).json({ 
-            error: 'Internal server error',
-            code: 'SERVER_ERROR'
-        });
-    }
-});
-
-// Admin endpoint to get all companies
-app.get('/api/admin/companies', async (req, res) => {
-    try {
-        const companies = await db.getAllCompanies();
-        res.json({
-            success: true,
-            companies: companies
-        });
-    } catch (error) {
-        console.error('Admin companies error:', error);
-        res.status(500).json({ 
-            error: 'Internal server error',
-            code: 'SERVER_ERROR'
-        });
-    }
-});
-
-// ============ ERROR HANDLING ============
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({
-        error: 'Internal server error',
-        code: 'SERVER_ERROR'
-    });
-});
-
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        error: 'Endpoint not found',
-        code: 'NOT_FOUND'
-    });
-});
-
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 GUMITE Slot API running on port ${PORT}`);
-    console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`💰 House edge: ${slotGame.getHouseEdge() * 100}%`);
-});}%`);
 });
