@@ -2,41 +2,28 @@
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
-console.log('⚠️ DATABASE.JS LOADING...');
-console.log('SUPABASE_URL exists:', process.env.SUPABASE_URL ? 'YES' : 'NO');
-console.log('SUPABASE_ANON_KEY exists:', process.env.SUPABASE_ANON_KEY ? 'YES' : 'NO');
-
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_ANON_KEY
 );
 
 class Database {
-    // Company management
     async getCompany(apiKey) {
         console.log('🔍 Looking for API key:', apiKey);
-        console.log('SUPABASE_URL being used:', process.env.SUPABASE_URL);
         
-        try {
-            const { data, error } = await supabase
-                .from('companies')
-                .select('*')
-                .eq('api_key', apiKey);
-            
-            if (error) {
-                console.log('❌ Supabase error:', error.message);
-                console.log('Error details:', JSON.stringify(error, null, 2));
-                return null;
-            }
-            
-            console.log('✅ Data found:', data);
-            
-            // Return the first result or null
-            return data && data.length > 0 ? data[0] : null;
-        } catch (error) {
-            console.log('⚠️ Exception caught:', error.message);
+        const { data, error } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('api_key', apiKey)
+            .single();
+        
+        if (error) {
+            console.log('❌ Supabase error:', error.message);
             return null;
         }
+        
+        console.log('✅ Found company:', data);
+        return data;
     }
 
     async updateCompanyBalance(companyId, newBalance) {
@@ -93,6 +80,29 @@ class Database {
         const totalBets = spins.reduce((s, i) => s + i.bet_amount, 0);
         const totalWins = spins.reduce((s, i) => s + i.win_amount, 0);
         const winCount = spins.filter(s => s.win_amount > 0).length;
+        
+        return {
+            totalSpins,
+            totalBets,
+            totalWins,
+            winRate: totalSpins > 0 ? (winCount / totalSpins) * 100 : 0,
+            profit: totalBets - totalWins,
+            houseEdge: totalBets > 0 ? ((totalBets - totalWins) / totalBets) * 100 : 0
+        };
+    }
+
+    async getAllCompanies() {
+        const { data, error } = await supabase
+            .from('companies')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        return data;
+    }
+}
+
+module.exports = new Database();= spins.filter(s => s.win_amount > 0).length;
         
         return {
             totalSpins,
