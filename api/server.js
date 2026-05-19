@@ -63,6 +63,27 @@ app.get('/api/info', (req, res) => {
     });
 });
 
+// Debug endpoint to check Supabase connection
+app.get('/api/debug', async (req, res) => {
+    try {
+        const company = await db.getCompany('test_api_key_123');
+        res.json({
+            supabase_url: process.env.SUPABASE_URL ? 'set' : 'missing',
+            supabase_key: process.env.SUPABASE_ANON_KEY ? 'set' : 'missing',
+            company_found: company ? true : false,
+            company_data: company,
+            message: 'Debug info'
+        });
+    } catch (error) {
+        res.json({
+            error: error.message,
+            supabase_url: process.env.SUPABASE_URL ? 'set' : 'missing',
+            supabase_key: process.env.SUPABASE_ANON_KEY ? 'set' : 'missing',
+            company_found: false
+        });
+    }
+});
+
 // ============ PROTECTED ENDPOINTS ============
 
 // Spin endpoint
