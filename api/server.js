@@ -1,4 +1,3 @@
-// api/server.js
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
@@ -58,6 +57,230 @@ app.get('/api/info', (req, res) => {
         houseEdge: slotGame.getHouseEdge(),
         winLines: slotGame.winLines.length
     });
+});
+
+// Demo page
+app.get('/demo', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>GUMITE Slot · Demo</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: 'Inter', system-ui, sans-serif;
+                    background: #0a0612;
+                    color: #fff;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    padding: 1rem;
+                }
+                .demo-container {
+                    max-width: 500px;
+                    width: 100%;
+                    text-align: center;
+                }
+                .header h1 {
+                    font-size: 2.5rem;
+                    background: linear-gradient(135deg, #ffdd44, #ff8800);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    margin-bottom: 1rem;
+                }
+                .slot-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                }
+                .cell {
+                    aspect-ratio: 1;
+                    background: radial-gradient(circle at 30% 30%, #fff8e7, #dfc9a0);
+                    border-radius: 1rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 3rem;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                    transition: 0.2s;
+                }
+                .cell.win {
+                    box-shadow: 0 0 30px #ffdd44;
+                    transform: scale(1.05);
+                }
+                .controls {
+                    display: flex;
+                    gap: 0.5rem;
+                    margin: 1rem 0;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+                .btn {
+                    padding: 0.8rem 2rem;
+                    border: none;
+                    border-radius: 0.5rem;
+                    font-size: 1rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: 0.2s;
+                    background: linear-gradient(135deg, #ffdd44, #ff8800);
+                    color: #1a1205;
+                }
+                .btn:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+                .btn:hover:not(:disabled) {
+                    transform: scale(1.02);
+                }
+                .bet-input {
+                    padding: 0.8rem;
+                    border-radius: 0.5rem;
+                    border: 1px solid #ffdd44;
+                    background: rgba(255,255,255,0.1);
+                    color: #fff;
+                    font-size: 1rem;
+                    width: 100px;
+                    text-align: center;
+                }
+                .result {
+                    font-size: 1.2rem;
+                    margin: 1rem 0;
+                    padding: 0.5rem;
+                    border-radius: 0.5rem;
+                    background: rgba(255,255,255,0.05);
+                }
+                .result.win {
+                    background: rgba(255,220,68,0.2);
+                    border: 1px solid #ffdd44;
+                }
+                .balance-display {
+                    margin: 1rem 0;
+                    padding: 0.5rem;
+                    background: rgba(255,255,255,0.05);
+                    border-radius: 0.5rem;
+                }
+                .balance-display span {
+                    font-weight: bold;
+                    color: #ffdd44;
+                }
+                @media (max-width: 400px) {
+                    .cell { font-size: 2rem; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="demo-container">
+                <div class="header">
+                    <h1>🎰 GUMITE</h1>
+                    <p>Professional Slot API · Demo</p>
+                </div>
+                <div class="balance-display">
+                    💰 Balance: <span id="balance">10,000</span> UGX
+                </div>
+                <div class="slot-grid" id="slotGrid">
+                    <div class="cell">🍒</div>
+                    <div class="cell">🍋</div>
+                    <div class="cell">🍊</div>
+                    <div class="cell">🍇</div>
+                    <div class="cell">🍀</div>
+                    <div class="cell">💎</div>
+                    <div class="cell">⭐</div>
+                    <div class="cell">🍒</div>
+                    <div class="cell">🍋</div>
+                </div>
+                <div class="controls">
+                    <input type="number" class="bet-input" id="betAmount" value="500" min="10" max="10000">
+                    <button class="btn" id="spinBtn">🎰 SPIN</button>
+                </div>
+                <div class="result" id="result">Press SPIN to start</div>
+            </div>
+            <script>
+                const API_URL = 'https://gumite-slot-api.onrender.com/api';
+                let balance = 10000;
+                let spinning = false;
+                const gridEl = document.getElementById('slotGrid');
+                const spinBtn = document.getElementById('spinBtn');
+                const betInput = document.getElementById('betAmount');
+                const resultEl = document.getElementById('result');
+                const balanceEl = document.getElementById('balance');
+
+                function updateBalance() {
+                    balanceEl.textContent = balance.toLocaleString();
+                }
+
+                function renderGrid(grid) {
+                    const cells = gridEl.querySelectorAll('.cell');
+                    cells.forEach((cell, i) => {
+                        cell.textContent = grid[i] || '🍒';
+                        cell.classList.remove('win');
+                    });
+                }
+
+                async function spin() {
+                    if (spinning) return;
+                    const betAmount = parseInt(betInput.value);
+                    if (isNaN(betAmount) || betAmount < 10) {
+                        alert('Minimum bet is 10 UGX');
+                        return;
+                    }
+                    if (betAmount > balance) {
+                        alert('Insufficient balance');
+                        return;
+                    }
+                    spinning = true;
+                    spinBtn.disabled = true;
+                    resultEl.textContent = '🎡 Spinning...';
+                    resultEl.className = 'result';
+                    balance -= betAmount;
+                    updateBalance();
+                    try {
+                        const response = await fetch(`${API_URL}/spin`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                playerId: 'demo_player_1',
+                                betAmount: betAmount
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            renderGrid(data.grid);
+                            if (data.win > 0) {
+                                balance += data.win;
+                                resultEl.textContent = `🎉 You won ${data.win.toLocaleString()} UGX!`;
+                                resultEl.className = 'result win';
+                            } else {
+                                resultEl.textContent = '💨 No win. Try again!';
+                                resultEl.className = 'result';
+                            }
+                            updateBalance();
+                        } else {
+                            resultEl.textContent = `Error: ${data.error}`;
+                            resultEl.className = 'result';
+                            balance += betAmount;
+                            updateBalance();
+                        }
+                    } catch (error) {
+                        resultEl.textContent = '⚠️ Connection error. Make sure API is running.';
+                        resultEl.className = 'result';
+                        balance += betAmount;
+                        updateBalance();
+                    }
+                    spinning = false;
+                    spinBtn.disabled = false;
+                }
+                spinBtn.addEventListener('click', spin);
+                updateBalance();
+            </script>
+        </body>
+        </html>
+    `);
 });
 
 // ============ PROTECTED ENDPOINTS ============
