@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GUMITE Slot API Documentation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #0a0612;
+            color: #fff;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #ffdd44, #ff8800);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        .section {
+            background: rgba(255,255,255,0.05);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .section h2 {
+            color: #ffdd44;
+            margin-bottom: 1rem;
+        }
+        .endpoint {
+            background: rgba(0,0,0,0.3);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid #ffdd44;
+        }
+        .endpoint .method {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.3rem;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        .method.get { background: #4caf50; color: #fff; }
+        .method.post { background: #2196f3; color: #fff; }
+        .endpoint .path {
+            font-family: monospace;
+            font-size: 1.1rem;
+        }
+        .endpoint .description {
+            margin-top: 0.5rem;
+            color: #888;
+        }
+        .code-block {
+            background: rgba(0,0,0,0.5);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        th, td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        th { color: #888; }
+        .tag {
+            display: inline-block;
+            padding: 0.1rem 0.5rem;
+            border-radius: 0.3rem;
+            font-size: 0.7rem;
+            margin: 0.1rem;
+        }
+        .tag.required { background: #f44336; color: #fff; }
+        .tag.optional { background: #4caf50; color: #fff; }
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 GUMITE Slot API Documentation</h1>
+        <p style="color:#888;margin-bottom:2rem;">Version 1.0.0 · Professional Slot Machine API for Betting Companies</p>
+
+        <div class="section">
+            <h2>📋 Overview</h2>
+            <p>The GUMITE Slot API provides a complete slot machine game with:</p>
+            <ul style="margin:0.5rem 0 0 1.5rem;color:#bbb;">
+                <li>✅ Cryptographically secure RNG</li>
+                <li>✅ 6.5% house edge (93.5% RTP)</li>
+                <li>✅ 7 unique symbols with weighted payouts</li>
+                <li>✅ 8 win lines (rows, columns, diagonals)</li>
+                <li>✅ Full audit logging</li>
+                <li>✅ Real-time balance management</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🔑 Authentication</h2>
+            <p>All API endpoints (except public ones) require an API key.</p>
+            <div class="code-block">
+                x-api-key: your_api_key_here
+            </div>
+            <p style="color:#888;margin-top:0.5rem;">Contact us to get your API key.</p>
+        </div>
+
+        <div class="section">
+            <h2>📡 Endpoints</h2>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/health</span>
+                <div class="description">Check if the API is running</div>
+                <div class="code-block">
+                    Response: { "status": "online", "version": "1.0.0", "timestamp": 123456789 }
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/info</span>
+                <div class="description">Get game information (symbols, payouts, house edge)</div>
+                <div class="code-block">
+                    Response: { "name": "GUMITE Slot", "houseEdge": 0.065, "symbols": [...] }
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/spin</span>
+                <div class="description">Perform a spin (requires API key)</div>
+                <table>
+                    <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                    <tr><td>playerId</td><td>string</td><td><span class="tag required">required</span></td><td>Unique player identifier</td></tr>
+                    <tr><td>betAmount</td><td>number</td><td><span class="tag required">required</span></td><td>Bet amount in UGX (10-10,000)</td></tr>
+                </table>
+                <div class="code-block">
+                    Request: { "playerId": "player_123", "betAmount": 500 }<br>
+                    Response: { "success": true, "spinId": "spin_123", "grid": ["🍒","🍋","🍊",...], "win": 0, ... }
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/deposit</span>
+                <div class="description">Deposit funds into your company account</div>
+                <div class="code-block">
+                    Request: { "amount": 10000, "reference": "DEP_123" }<br>
+                    Response: { "success": true, "transactionId": "DEP_123", "newBalance": 15000 }
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <span class="path">/api/withdraw</span>
+                <div class="description">Withdraw funds from your company account</div>
+                <div class="code-block">
+                    Request: { "amount": 5000, "bankAccount": "ACC123456", "reference": "WITHDRAW_123" }<br>
+                    Response: { "success": true, "transactionId": "WITHDRAW_123", "newBalance": 10000 }
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/balance</span>
+                <div class="description">Check your company balance</div>
+                <div class="code-block">
+                    Response: { "companyId": "comp_123", "companyName": "Test Casino", "balance": 15000, "currency": "UGX" }
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span class="path">/api/stats</span>
+                <div class="description">Get game statistics for your company</div>
+                <div class="code-block">
+                    Response: { "companyId": "comp_123", "totalSpins": 1234, "winRate": 28.5, "profit": 4567, ... }
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💰 Revenue Model</h2>
+            <table>
+                <tr><th>Model</th><th>Details</th></tr>
+                <tr><td>License Fee</td><td>$100/month per company</td></tr>
+                <tr><td>Revenue Share</td><td>20% of house edge</td></tr>
+                <tr><td>Per-Spin Fee</td><td>$0.02 per spin (optional)</td></tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🚀 Quick Start</h2>
+            <div class="code-block">
+                // Install with npm<br>
+                npm install axios<br><br>
+                // Call the API<br>
+                const response = await axios.post('https://gumite-slot-api.onrender.com/api/spin', {<br>
+                &nbsp;&nbsp;playerId: 'player_123',<br>
+                &nbsp;&nbsp;betAmount: 500<br>
+                }, {<br>
+                &nbsp;&nbsp;headers: { 'x-api-key': 'your_api_key_here' }<br>
+                });<br><br>
+                console.log(response.data);
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📞 Contact</h2>
+            <p style="color:#bbb;">Email: support@gumite.com</p>
+            <p style="color:#bbb;">Website: https://gumite.com</p>
+            <p style="color:#bbb;">API Base URL: https://gumite-slot-api.onrender.com/api</p>
+        </div>
+    </div>
+</body>
+</html>
