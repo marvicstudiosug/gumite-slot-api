@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: gumite-slot-api
+    runtime: node
+    repo: https://github.com/MarvicStudiosUG/gumite-slot-api
+    plan: free
+    buildCommand: npm install
+    startCommand: node api/server.js
+    envVars:
+      - key: SUPABASE_URL
+        value: https://txudzdhawwggocclvcyy.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4dWR6ZGhhd3dnZ29jY2x2Y3l5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxODE3NjAsImV4cCI6MjA5NDc1Nzc2MH0.3gY-WhlzUzouVq2gIl7h83hVqjhJnk508q7Ft3o-6xk
+    nodeVersion: 18.x
